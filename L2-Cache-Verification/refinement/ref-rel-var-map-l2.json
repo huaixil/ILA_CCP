@@ -1,0 +1,269 @@
+{
+  "models": { "ILA":"m0" , "VERILOG": "m1" },
+
+  "state mapping": { 
+    "msg2_type"   :    [["__START__", null],
+                        ["__IEND__", "#msg_send#"]],
+
+    "cache_tag"   :    "m1.tag_wrap.l2_tag.l2_tag_array.cache[0][25:0]",
+    "cache_vd"    :    [["__START__", "#cache_in#[12:11]"],
+                        ["__IEND__",  "m1.state_wrap.l2_state.l2_state_array.cache[0][12:11]"]],
+    "cache_state" :    [["__START__", "#cache_in#[14:13]"],
+                        ["__IEND__",  "m1.state_wrap.l2_state.l2_state_array.cache[0][14:13]"]],
+    "cache_owner" :    [["__START__", "#cache_in#[5:0]"],
+                        ["__IEND__",  "m1.state_wrap.l2_state.l2_state_array.cache[0][5:0]"]],
+    "cache_data"  :    "m1.data_wrap.l2_data.l2_data_array.cache[0][63:0]",
+
+    "share_list" :    "m1.dir_wrap.l2_dir.l2_dir_array.cache[0]",
+
+    "cur_msg_state":   "m1.mshr_wrap.state_mem_f[0]",
+    "cur_msg_type":    "m1.mshr_wrap.data_mem_f[0][61:54]",
+    "cur_msg_source":  "{m1.mshr_wrap.data_mem_f[0][87:85], m1.mshr_wrap.data_mem_f[0][79:77]}",
+    "cur_msg_tag":     "m1.mshr_wrap.data_mem_f[0][39:14]"
+  },
+
+  "value-holder" : {
+    "msg_send" :{
+      "cond": "#monitor_S4#",
+      "val" : "m1.pipe1.ctrl.msg_send_type_S4",
+      "width": "auto"
+    },
+    "msg_data" :{
+      "cond" : "#pipe2_monitor_S2#",
+      "val" : "m1.pipe2.dpath.msg_data_S2[63:0]",
+      "width" : "auto"
+    }
+  },
+
+  "verilog-inline-monitors":{
+    "stage_tracker" : {
+      "verilog" : [
+        "always @(*) begin monitor_S1 = __START__ && (m1.pipe1.ctrl.valid_S1 && !m1.pipe1.ctrl.stall_S1) ; end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        monitor_S2_f <= 0;",
+        "    else if (!m1.pipe1.ctrl.stall_S2)",
+        "        monitor_S2_f <= monitor_S1;",
+        "end",
+        "always @(*)",
+        "begin",
+        "  monitor_S2 = monitor_S2_f; ",
+        "  monitor_S2_next = monitor_S2 && !m1.pipe1.ctrl.stall_S2; ",
+        "end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        monitor_S3_f <= 0;",
+        "    else if (!m1.pipe1.ctrl.stall_S3)",
+        "        monitor_S3_f <= monitor_S2_next;",
+        "end",
+        "always @(*)",
+        "begin",
+        "    monitor_S3 = monitor_S3_f; ",
+        "    monitor_S3_next = monitor_S3 && !m1.pipe1.ctrl.stall_S3;",
+        "end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        monitor_S4_f <= 0;",
+        "    else if (!m1.pipe1.ctrl.stall_S4)",
+        "        monitor_S4_f <= monitor_S3_next;",
+        "end",
+        "always @(*)",
+        "begin", 
+        "    monitor_S4 = monitor_S4_f;",
+        "    monitor_S4_next = monitor_S4 && !m1.pipe1.ctrl.stall_S4;",
+        "end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        pipe1_commit <= 0;",
+        "    else",
+        "        pipe1_commit <= monitor_S4_next;",
+        "end"
+
+      ],
+
+      "defs" : [
+        ["monitor_S1"      , 1 , "reg"]  ,
+        ["monitor_S2_f"    , 1 , "reg"]  ,
+        ["monitor_S2"      , 1 , "reg"]  ,
+        ["monitor_S2_next" , 1 , "reg"]  ,
+        ["monitor_S3_f"    , 1 , "reg"]  ,
+        ["monitor_S3"      , 1 , "reg"]  ,
+        ["monitor_S3_next" , 1 , "reg"]  , 
+        ["monitor_S4_f"    , 1 , "reg"]  ,
+        ["monitor_S4"      , 1 , "reg"]  ,
+        ["monitor_S4_next" , 1 , "reg"]  , 
+        ["pipe1_commit"    , 1 , "reg"]   
+      ],
+
+      "refs" : [ 
+        "m1.pipe1.ctrl.stall_S2", 
+        "m1.pipe1.ctrl.stall_S3", 
+        "m1.pipe1.ctrl.stall_S4" 
+      ]
+    },
+
+    "stage_tracker_pipe2" : {
+      "verilog" : [
+        "always @(*) begin pipe2_monitor_S1 = __START__ && (m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) ; end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        pipe2_monitor_S2 <= 0;",
+        "    else if (!m1.pipe2.ctrl.stall_S2)",
+        "        pipe2_monitor_S2 <= pipe2_monitor_S1;",
+        "end",
+        "always @(*)",
+        "begin",
+        "  pipe2_monitor_S2_next = pipe2_monitor_S2 && !m1.pipe2.ctrl.stall_S2; ",
+        "end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        pipe2_monitor_S3 <= 0;",
+        "    else if (!m1.pipe2.ctrl.stall_S3)",
+        "        pipe2_monitor_S3 <= pipe2_monitor_S2_next;",
+        "end",
+        "always @(*)",
+        "begin",
+        "    pipe2_monitor_S3_next = pipe2_monitor_S3 && !m1.pipe2.ctrl.stall_S3;",
+        "end",
+
+        "always @(posedge clk) begin",
+        "    if(rst)",
+        "        pipe2_commit <= 0;",
+        "    else",
+        "        pipe2_commit <= pipe2_monitor_S3_next;",
+        "end"
+
+      ],
+
+      "defs" : [
+        ["pipe2_monitor_S1"      , 1 , "reg"]  ,
+        ["pipe2_monitor_S2"      , 1 , "reg"]  ,
+        ["pipe2_monitor_S2_next" , 1 , "reg"]  ,
+        ["pipe2_monitor_S3"      , 1 , "reg"]  ,
+        ["pipe2_monitor_S3_next" , 1 , "reg"]  , 
+        ["pipe2_commit"          , 1 , "reg"]   
+      ],
+
+      "refs" : [
+        "m1.pipe2.ctrl.stall_S2", 
+        "m1.pipe2.ctrl.stall_S3"
+      ]
+    },
+    
+    "bypass_logic":{
+      "verilog" : [
+        "always @(*) begin",
+        "    data_in_bp      = m1.state_wrap.l2_state.data_in;",
+        "    data_mask_in_bp = m1.state_wrap.l2_state.data_mask_in;",
+        "    cache_0         = m1.state_wrap.l2_state.l2_state_array.cache[0];",
+        "    cache_bp = (data_in_bp & data_mask_in_bp) | (cache_0 & ~data_mask_in_bp);",
+        "    if(m1.state_wrap.l2_state.bypass_next)",
+        "        cache_in = cache_bp;",
+        "    else",
+        "        cache_in = cache_0;",
+        "end"
+      ],
+
+      "defs" : [
+        ["data_in_bp"      , 66 ,"reg"],
+        ["data_mask_in_bp" , 66 ,"reg"],
+        ["cache_0"         , 66 ,"reg"],
+        ["cache_bp"        , 66 ,"reg"],
+        ["cache_in"        , 66 ,"reg"]
+      ],
+
+      "refs": [
+        "m1.state_wrap.l2_state.data_in",
+        "m1.state_wrap.l2_state.data_mask_in",
+        "m1.state_wrap.l2_state.l2_state_array.cache[0]",
+        "m1.state_wrap.l2_state.bypass_next"
+      ]
+    }
+  },
+
+  "interface mapping": {
+     
+     "clk"           :           "**CLOCK**" ,
+     "rst_n"         :           "**NRESET**",
+     "chipid"        :           "**KEEP**",
+     "coreid_x"      :           "**KEEP**",
+     "coreid_y"      :           "**KEEP**",
+     
+     "noc1_valid_in" :           "**KEEP**",
+     "noc1_data_in"  :           "**KEEP**",
+     "noc1_ready_in" :           "**KEEP**",
+     
+     "noc3_valid_in" :           "**KEEP**",
+     "noc3_data_in"  :           "**KEEP**",
+     "noc3_ready_in" :           "**KEEP**",
+
+     "noc2_valid_out":           "**KEEP**",
+     "noc2_data_out" :           "**KEEP**",
+     "noc2_ready_out":           "**KEEP**",
+
+     "srams_rtap_data"         : "**KEEP**",
+     "rtap_srams_bist_command" : "**KEEP**",
+     "rtap_srams_bist_data"    : "**KEEP**"
+  },
+
+  "mapping control":[
+    "__ILA_I_msg1_type  == m1.pipe1.msg_type",
+    "__ILA_I_msg1_tag    == m1.pipe1.msg_addr[39:14]",
+    "__ILA_I_msg1_source == {m1.pipe1.msg_src_y[2:0], m1.pipe1.msg_src_x[2:0]}",
+    "__ILA_I_msg3_type  == m1.pipe2.msg_type",
+    "__ILA_I_msg3_data == #msg_data#",
+    "__ILA_I_msg3_tag  == m1.pipe1.msg_addr[39:14]",
+
+    // No respnose written during the Request
+    "~#monitor_S1# || ~(m1.pipe2.ctrl.state_wr_en_S3 || m1.pipe2.ctrl.mshr_wr_state_en_S3 || m1.pipe2.ctrl.tag_clk_en_S1)",
+    "~#monitor_S2# || ~(m1.pipe2.ctrl.state_wr_en_S3 || m1.pipe2.ctrl.mshr_wr_state_en_S3 || m1.pipe2.ctrl.tag_clk_en_S1)",
+    "~#monitor_S3# || ~(m1.pipe2.ctrl.state_wr_en_S3 || m1.pipe2.ctrl.mshr_wr_state_en_S3 || m1.pipe2.ctrl.tag_clk_en_S1)",
+    "~#monitor_S4# || ~(m1.pipe2.ctrl.state_wr_en_S3 || m1.pipe2.ctrl.mshr_wr_state_en_S3 || m1.pipe2.ctrl.tag_clk_en_S1)",
+    "(~#monitor_S2# || ~m1.pipe1.ctrl.req_recycle_S2) && (~#monitor_S3# || ~m1.pipe1.ctrl.req_recycle_S3) && (~#monitor_S4# || ~m1.pipe1.ctrl.req_recycle_S4)",
+
+    // Only check last response
+    "~#pipe2_monitor_S2# || (m1.pipe2.ctrl.is_last_subline_S2 && m1.pipe2.ctrl.subline_valid_S2 && m1.pipe2.ctrl.msg_length_S2_f !=0)",
+    "~#pipe2_monitor_S2# || ~(m1.pipe1.ctrl.state_wr_en_S4)",
+    "~(#pipe2_monitor_S2# && m1.pipe2.msg_type_S2 == 23) || (m1.pipe2.ctrl.l2_way_state_owner_S2 == 1 && m1.pipe2.ctrl.inv_fwd_pending_S2_f == 0)"
+  
+  ],
+
+  "assumptions" : [
+    // msg assumption
+    " ~m1.pipe1.msg_header_valid || (m1.pipe1.msg_type == 2 || m1.pipe1.msg_type == 31 || m1.pipe1.msg_type == 13)",
+    " ~m1.pipe2.msg_header_valid || ( ( m1.pipe2.msg_type >= 21 && m1.pipe2.msg_type <= 25) || m1.pipe2.msg_type == 12)",
+
+    // address assumption: we only care about the coherence among one address & one subline
+    "m1.pipe1.ctrl.special_addr_type_S1 == 0",
+    "m1.pipe1.msg_addr[13:4] == 0 && m1.pipe2.msg_addr[13:4] == 0",
+    "~(m1.state_wrap.l2_state.l2_state_array.cache[0][14:13] == `L2_MESI_E) || (m1.state_wrap.l2_state.l2_state_array.cache[0][9:6] == 1)",
+
+    // Assumptions on Write Back Request
+    "~(m1.pipe2.ctrl.msg_type_S1 == `MSG_TYPE_WB_REQ && m1.pipe2.ctrl.valid_S1) || m1.state_wrap.l2_state.l2_state_array.cache[0][14:13] == `L2_MESI_E",
+    "(~m1.pipe1.ctrl.msg_state_S4_f || ~m1.pipe1.ctrl.req_recycle_S4)",
+
+    // Assumptions on Inv_Fwd: Number of Fwd_Ack must be less than number of Fwd 
+    "~m1.pipe1.ctrl.state_wr_en_real_S4 || (m1.pipe1.dpath.dir_sharer_counter_S4 > m1.pipe1.dpath.mshr_inv_counter_out_S4)",
+
+    // Assumptions on Response Sequence: only write when state is waiting
+    "~(m1.pipe2.ctrl.mshr_wr_state_en_S3 || m1.pipe2.ctrl.state_wr_en_S3 || m1.pipe2.ctrl.dir_clk_en_S2) || (m1.mshr_wrap.state_mem_f[0] == 2'b01 || m1.pipe2.ctrl.msg_type_S3 == `MSG_TYPE_WB_REQ)",
+    "~(m1.pipe2.ctrl.valid_S1 && 21 <= m1.pipe2.ctrl.msg_type_S1 <= 24) || m1.mshr_wrap.state_mem_f[0] == 2'b01",
+    "m1.pipe2.msg_mshrid == 0",
+    "m1.pipe2.msg_subline_id == 0",
+
+    // Only deal with Data Cache
+    "m1.pipe1.ctrl.cache_type_S1 == 0"
+    ],
+
+  "functions": {
+    "__unknown__0" :[["__IEND__", "m1.state_wrap.l2_state.l2_state_array.cache[0][5:0]" ]],
+    "__unknown__1" :[["__IEND__", "m1.state_wrap.l2_state.l2_state_array.cache[0][5:0]" ]]
+  }
+
+}

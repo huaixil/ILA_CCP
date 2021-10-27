@@ -1,0 +1,83 @@
+{
+  "instructions": [
+    {
+      "instruction" : "LOAD_REQ",
+      "ready signal": "#pipe1_commit#",
+      "start condition": ["$decode$", "((m1.pipe1.ctrl.valid_S1 && !m1.pipe1.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "STORE_REQ",
+      "ready signal": "#pipe1_commit#",
+      "start condition": ["$decode$", "((m1.pipe1.ctrl.valid_S1 && !m1.pipe1.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "LOAD_FWDACK",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "STORE_FWDACK",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "INV_FWDACK",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "LOAD_MEM_ACK",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "STORE_MEM_ACK",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    },
+
+    {
+      "instruction" : "WB_REQ",
+      "ready signal": "#pipe2_commit#",
+      "start condition": ["$decode$", "((m1.pipe2.ctrl.valid_S1 && !m1.pipe2.ctrl.stall_S1) == 1)"],
+      "max bound": 50
+    }
+
+  ],
+  
+  "global invariants": [
+    "m1.mshr_wrap.state_mem_f[1] == 0 && m1.mshr_wrap.state_mem_f[2] == 0 && m1.mshr_wrap.state_mem_f[3] == 0",
+    "m1.mshr_wrap.state_mem_f[4] == 0 && m1.mshr_wrap.state_mem_f[5] == 0 && m1.mshr_wrap.state_mem_f[6] == 0 && m1.mshr_wrap.state_mem_f[7] == 0",
+    
+    "m1.mshr_wrap.data_mem_f[0][119] == 0 && m1.mshr_wrap.data_mem_f[0][41:40] == 0",
+    "m1.state_wrap.l2_state.l2_state_array.cache[0][14:13] != 3",
+    "m1.state_wrap.l2_state.l2_state_array.cache[0][12:11] != 1",
+    
+    "m1.pipe1.ctrl.special_addr_type_S2 == 0",
+    "m1.pipe1.ctrl.addr_S2[13:4] == 0 && m1.pipe1.ctrl.addr_S3[13:4] == 0 && m1.pipe1.ctrl.addr_S4[13:4] == 0",
+    "m1.pipe2.ctrl.addr_S2[13:6] == 0 && m1.pipe2.ctrl.addr_S3[13:6] == 0",
+
+    "~m1.pipe1.ctrl.first_valid_S4 || m1.pipe1.ctrl.msg_state_S4_f == 0",
+    "~m1.pipe2.ctrl.first_valid_S2 || m1.pipe2.ctrl.l2_load_data_subline_S2_f == 0",
+    "~m1.pipe1.ctrl.first_valid_S4 || m1.pipe1.ctrl.dir_sharer_counter_S4 == 1",
+    "m1.state_wrap.l2_state.l2_state_array.cache[0][10] == 0",
+    
+    "~(m1.pipe2.valid_S1 || m1.pipe2.valid_S3) || (~m1.pipe1.ctrl.data_clk_en_S2 || m1.pipe1.ctrl.data_rdw_en_S2)"
+
+  ]
+
+}
+
